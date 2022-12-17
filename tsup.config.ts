@@ -12,4 +12,7 @@ export default defineConfig({
   bundle: true,
   clean: true,
   dts: true,
+
+  // inject cjs and esm shims
+  shims: true,
 })
