@@ -22,33 +22,67 @@ var import_cac = __toESM(require("cac"), 1);
 
 // src/node/core/dev.ts
 var import_vite = require("vite");
+var import_plugin_react = __toESM(require("@vitejs/plugin-react"), 1);
 
 // src/vite-plugins/load-index-html.ts
 var import_promises = require("fs/promises");
-function viteLoadIndexHtmlPlugin(templatePath) {
-  return {
-    name: "plasticine-island:load-index-html",
-    configureServer(server) {
-      server.middlewares.use(async (_, res) => {
-        const html = await (0, import_promises.readFile)(templatePath, { encoding: "utf-8" });
-        res.setHeader("Content-Type", "text/html");
-        res.end(html);
-      });
-    }
-  };
-}
 
 // src/constants/index.ts
 var import_path = require("path");
 var PACKAGE_ROOT = (0, import_path.resolve)(__dirname, "..");
-var DEFAULT_TEMPLATE_PATH = (0, import_path.resolve)(PACKAGE_ROOT, "index.html");
+var DEFAULT_TEMPLATE_PATH = (0, import_path.resolve)(PACKAGE_ROOT, "template.html");
+var CLIENT_ENTRY_PATH = (0, import_path.resolve)(
+  PACKAGE_ROOT,
+  "src/runtime/client-entry/index.tsx"
+);
+
+// src/vite-plugins/load-index-html.ts
+function viteLoadIndexHtmlPlugin(templatePath) {
+  return {
+    name: "plasticine-island:load-index-html",
+    apply: "serve",
+    configureServer(server) {
+      return () => {
+        server.middlewares.use(async (req, res, next) => {
+          let html = await (0, import_promises.readFile)(templatePath, { encoding: "utf-8" });
+          try {
+            html = await server.transformIndexHtml(req.url, html, req.originalUrl);
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "text/html");
+            res.end(html);
+          } catch (error) {
+            return next(error);
+          }
+        });
+      };
+    },
+    transformIndexHtml(html, ctx) {
+      return {
+        html,
+        tags: [
+          {
+            tag: "script",
+            attrs: {
+              type: "module",
+              src: `/@fs/${CLIENT_ENTRY_PATH}`
+            },
+            injectTo: "body"
+          }
+        ]
+      };
+    }
+  };
+}
 
 // src/node/core/dev.ts
 async function createDevServer(root) {
   const server = await (0, import_vite.createServer)({
     configFile: false,
     root,
-    plugins: [viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH)]
+    plugins: [
+      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
+      (0, import_plugin_react.default)()
+    ]
   });
   return server;
 }
