@@ -1,4 +1,4 @@
-import Layout from '../../theme-default/Layout'
+import Layout from '../theme-default/Layout'
 
 const App: React.FC = () => {
   return <Layout />
