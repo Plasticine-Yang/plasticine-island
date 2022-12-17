@@ -10,4 +10,6 @@ export default defineConfig({
   outDir: resolve(__dirname, 'dist'),
   format: ['cjs', 'esm'],
   bundle: true,
+  clean: true,
+  dts: true,
 })
