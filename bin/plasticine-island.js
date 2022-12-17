@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-console.log('hi')
+require('../dist/node/cli/index')
