@@ -2,12 +2,14 @@
   "name": "plasticine-island",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "bin": {
     "plasticine-island": "bin/plasticine-island.js"
   },
   "scripts": {
-    "dev": "tsc -w"
+    "dev": "tsup --watch"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.11.16",
+    "tsup": "^6.5.0",
     "typescript": "^4.9.4"
   }
 }

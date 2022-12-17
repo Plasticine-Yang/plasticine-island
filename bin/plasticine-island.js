@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('../dist/node/cli/index')
+import '../dist/index.js'

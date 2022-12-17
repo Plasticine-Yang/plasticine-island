@@ -5,7 +5,7 @@ import { createDevServer } from '../../core'
 function registerDev(cli: CAC) {
   const action = async (root: string) => {
     const server = await createDevServer(root)
-    server.listen()
+    await server.listen()
     server.printUrls()
   }
 
