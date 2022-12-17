@@ -22,10 +22,33 @@ var import_cac = __toESM(require("cac"), 1);
 
 // src/node/core/dev.ts
 var import_vite = require("vite");
+
+// src/vite-plugins/load-index-html.ts
+var import_promises = require("fs/promises");
+function viteLoadIndexHtmlPlugin(templatePath) {
+  return {
+    name: "plasticine-island:load-index-html",
+    configureServer(server) {
+      server.middlewares.use(async (_, res) => {
+        const html = await (0, import_promises.readFile)(templatePath, { encoding: "utf-8" });
+        res.setHeader("Content-Type", "text/html");
+        res.end(html);
+      });
+    }
+  };
+}
+
+// src/constants/index.ts
+var import_path = require("path");
+var PACKAGE_ROOT = (0, import_path.resolve)(__dirname, "..");
+var DEFAULT_TEMPLATE_PATH = (0, import_path.resolve)(PACKAGE_ROOT, "index.html");
+
+// src/node/core/dev.ts
 async function createDevServer(root) {
   const server = await (0, import_vite.createServer)({
     configFile: false,
-    root
+    root,
+    plugins: [viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH)]
   });
   return server;
 }
