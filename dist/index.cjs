@@ -52,7 +52,11 @@ function viteLoadIndexHtmlPlugin(templatePath) {
         server.middlewares.use(async (req, res, next) => {
           let html = await (0, import_promises.readFile)(templatePath, { encoding: "utf-8" });
           try {
-            html = await server.transformIndexHtml(req.url, html, req.originalUrl);
+            html = await server.transformIndexHtml(
+              req.url,
+              html,
+              req.originalUrl
+            );
             res.statusCode = 200;
             res.setHeader("Content-Type", "text/html");
             res.end(html);
@@ -62,7 +66,7 @@ function viteLoadIndexHtmlPlugin(templatePath) {
         });
       };
     },
-    transformIndexHtml(html, ctx) {
+    transformIndexHtml(html) {
       return {
         html,
         tags: [
