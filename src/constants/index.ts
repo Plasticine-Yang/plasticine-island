@@ -9,3 +9,12 @@ export const CLIENT_ENTRY_PATH = resolve(
   PACKAGE_ROOT,
   'src/runtime/client-entry/index.tsx',
 )
+
+export const SERVER_ENTRY_PATH = resolve(
+  PACKAGE_ROOT,
+  'src/runtime/server-entry/index.tsx',
+)
+
+export const CLIENT_ENTRY_BUNDLE_PATH = 'dist'
+
+export const SERVER_ENTRY_BUNDLE_PATH = '.temp'
