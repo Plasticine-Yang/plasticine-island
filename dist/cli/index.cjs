@@ -85,10 +85,11 @@ function viteLoadIndexHtmlPlugin(templatePath) {
 }
 
 // src/vite-plugins/resolve-config.ts
+var import_path2 = require("path");
 var siteDataId = "plasticine-island:site-data";
 var resolvedSiteDataId = "\0plasticine-island:site-data";
-function viteResolveConfigPlugin(config) {
-  const { siteData } = config;
+function viteResolveConfigPlugin(config, onRestart) {
+  const { root, siteData, sources } = config;
   return {
     name: "plasticine-island:config",
     resolveId(source) {
@@ -99,6 +100,17 @@ function viteResolveConfigPlugin(config) {
     load(id) {
       if (id === resolvedSiteDataId) {
         return `export default ${JSON.stringify(siteData)}`;
+      }
+    },
+    async handleHotUpdate(ctx) {
+      const shouldHotUpdate = (file) => sources.some((configFilePath) => file.includes(configFilePath));
+      if (shouldHotUpdate(ctx.file)) {
+        console.log(
+          `
+${(0, import_path2.relative)(root, ctx.file)} changed, restarting dev server...
+`
+        );
+        await onRestart();
       }
     }
   };
@@ -135,7 +147,7 @@ function resolveSiteData(userConfig) {
 }
 
 // src/node/core/dev.ts
-async function createDevServer(root) {
+async function createDevServer(root, onRestart) {
   const config = await resolveConfig(root);
   const server = await (0, import_vite.createServer)({
     configFile: false,
@@ -143,7 +155,7 @@ async function createDevServer(root) {
     plugins: [
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       (0, import_plugin_react.default)(),
-      viteResolveConfigPlugin(config)
+      viteResolveConfigPlugin(config, onRestart)
     ],
     server: {
       fs: {
@@ -157,20 +169,26 @@ async function createDevServer(root) {
 // src/node/cli/commands/dev.ts
 function registerDev(cli) {
   const actionCallback = async (root) => {
-    const server = await createDevServer(root);
-    await server.listen();
-    server.printUrls();
+    const _createDevServer = async () => {
+      const server = await createDevServer(root, async () => {
+        await server.close();
+        await _createDevServer();
+      });
+      await server.listen();
+      server.printUrls();
+    };
+    await _createDevServer();
   };
   cli.command("dev <root>", "Start a dev server.").action(actionCallback);
 }
 
 // src/node/core/build.ts
 var import_vite2 = require("vite");
-var import_path2 = require("path");
+var import_path3 = require("path");
 var import_promises2 = require("fs/promises");
 async function build(root) {
   const [clientBundle] = await bundle(root);
-  const serverEntryBundlePath = (0, import_path2.resolve)(root, ".temp", "index.js");
+  const serverEntryBundlePath = (0, import_path3.resolve)(root, ".temp", "index.js");
   const serverEntryModule = await import(serverEntryBundlePath);
   const { serverRender } = serverEntryModule;
   await renderPage(root, serverRender, clientBundle);
@@ -230,8 +248,8 @@ async function renderPage(root, serverRender, clientBundle) {
   </body>
 </html> 
 `.trim();
-  await (0, import_promises2.writeFile)((0, import_path2.resolve)(root, CLIENT_ENTRY_BUNDLE_PATH, "index.html"), html);
-  await (0, import_promises2.rm)((0, import_path2.resolve)(root, SERVER_ENTRY_BUNDLE_PATH), {
+  await (0, import_promises2.writeFile)((0, import_path3.resolve)(root, CLIENT_ENTRY_BUNDLE_PATH, "index.html"), html);
+  await (0, import_promises2.rm)((0, import_path3.resolve)(root, SERVER_ENTRY_BUNDLE_PATH), {
     recursive: true,
     force: true
   });

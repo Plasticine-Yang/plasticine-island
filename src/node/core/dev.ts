@@ -10,7 +10,7 @@ import {
 import { DEFAULT_TEMPLATE_PATH, PACKAGE_ROOT } from '../../constants'
 import { resolveConfig } from './config-resolver'
 
-async function createDevServer(root: string) {
+async function createDevServer(root: string, onRestart: () => Promise<void>) {
   const config = await resolveConfig(root)
 
   const server = await createServer({
@@ -19,7 +19,7 @@ async function createDevServer(root: string) {
     plugins: [
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
-      viteResolveConfigPlugin(config),
+      viteResolveConfigPlugin(config, onRestart),
     ],
     server: {
       fs: {

@@ -71,10 +71,11 @@ function viteLoadIndexHtmlPlugin(templatePath) {
 }
 
 // src/vite-plugins/resolve-config.ts
+import { relative } from "path";
 var siteDataId = "plasticine-island:site-data";
 var resolvedSiteDataId = "\0plasticine-island:site-data";
-function viteResolveConfigPlugin(config) {
-  const { siteData } = config;
+function viteResolveConfigPlugin(config, onRestart) {
+  const { root, siteData, sources } = config;
   return {
     name: "plasticine-island:config",
     resolveId(source) {
@@ -86,12 +87,23 @@ function viteResolveConfigPlugin(config) {
       if (id === resolvedSiteDataId) {
         return `export default ${JSON.stringify(siteData)}`;
       }
+    },
+    async handleHotUpdate(ctx) {
+      const shouldHotUpdate = (file) => sources.some((configFilePath) => file.includes(configFilePath));
+      if (shouldHotUpdate(ctx.file)) {
+        console.log(
+          `
+${relative(root, ctx.file)} changed, restarting dev server...
+`
+        );
+        await onRestart();
+      }
     }
   };
 }
 
 // src/node/core/dev.ts
-async function createDevServer(root) {
+async function createDevServer(root, onRestart) {
   const config = await resolveConfig(root);
   const server = await createServer({
     configFile: false,
@@ -99,7 +111,7 @@ async function createDevServer(root) {
     plugins: [
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
-      viteResolveConfigPlugin(config)
+      viteResolveConfigPlugin(config, onRestart)
     ],
     server: {
       fs: {
@@ -113,9 +125,15 @@ async function createDevServer(root) {
 // src/node/cli/commands/dev.ts
 function registerDev(cli) {
   const actionCallback = async (root) => {
-    const server = await createDevServer(root);
-    await server.listen();
-    server.printUrls();
+    const _createDevServer = async () => {
+      const server = await createDevServer(root, async () => {
+        await server.close();
+        await _createDevServer();
+      });
+      await server.listen();
+      server.printUrls();
+    };
+    await _createDevServer();
   };
   cli.command("dev <root>", "Start a dev server.").action(actionCallback);
 }
