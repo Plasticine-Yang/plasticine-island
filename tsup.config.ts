@@ -4,10 +4,11 @@ import { resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const r = (path: string) => resolve(__dirname, path)
 
 export default defineConfig({
-  entry: [resolve(__dirname, 'src/node/cli/index.ts')],
-  outDir: resolve(__dirname, 'dist'),
+  entry: [r('src/node/cli/index.ts'), r('src/node/index.ts')],
+  outDir: r('dist'),
   format: ['cjs', 'esm'],
   bundle: true,
   clean: true,

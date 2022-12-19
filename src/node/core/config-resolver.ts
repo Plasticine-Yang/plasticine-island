@@ -2,10 +2,21 @@
 
 import { loadConfig } from 'unconfig'
 
-import { UserConfig } from '../../types/config'
+import { SiteConfig, UserConfig } from 'types'
 
 async function resolveConfig(root: string) {
-  const { config, sources } = await loadConfig<UserConfig>({
+  const { config: userConfig, sources } = await resolveUserConfig(root)
+  const siteConfig: SiteConfig = {
+    root,
+    sources,
+    siteData: resolveSiteData(userConfig),
+  }
+
+  return siteConfig
+}
+
+function resolveUserConfig(root: string) {
+  return loadConfig<UserConfig>({
     sources: [
       {
         files: 'plasticine-island.config',
@@ -14,8 +25,16 @@ async function resolveConfig(root: string) {
     ],
     cwd: root,
   })
+}
 
-  return { config, sources }
+/** @description 为 UserConfig 配置默认值 */
+function resolveSiteData(userConfig: UserConfig): UserConfig {
+  const { title, description } = userConfig
+
+  return {
+    title: title ?? 'plasticine-island',
+    description: description ?? 'A SSG framework powered by island',
+  }
 }
 
 function defineConfig(config: UserConfig): UserConfig {

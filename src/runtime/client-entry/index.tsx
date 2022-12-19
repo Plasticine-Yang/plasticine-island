@@ -1,5 +1,7 @@
 import { createRoot } from 'react-dom/client'
 
+import siteData from 'plasticine-island:site-data'
+
 import App from '../App'
 
 function renderInBrowser() {
@@ -8,6 +10,7 @@ function renderInBrowser() {
     throw new Error('#root not found')
   }
 
+  console.log(siteData)
   createRoot(rootEl).render(<App />)
 }
 
