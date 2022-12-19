@@ -11,7 +11,12 @@ import {
   SERVER_ENTRY_BUNDLE_PATH,
   SERVER_ENTRY_PATH,
 } from '../../constants'
-import { ServerEntryModule } from './type'
+
+import { serverRender } from '../../runtime/server-entry'
+
+interface ServerEntryModule {
+  serverRender: typeof serverRender
+}
 
 async function build(root: string) {
   // 1. 并行构建 client-entry 和 server-entry
