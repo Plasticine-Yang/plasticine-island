@@ -4,7 +4,7 @@ import viteReactPlugin from '@vitejs/plugin-react'
 
 import { viteLoadIndexHtmlPlugin } from '../../vite-plugins'
 
-import { DEFAULT_TEMPLATE_PATH } from '../../constants'
+import { DEFAULT_TEMPLATE_PATH, PACKAGE_ROOT } from '../../constants'
 
 async function createDevServer(root: string) {
   const server = await createServer({
@@ -14,6 +14,11 @@ async function createDevServer(root: string) {
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
     ],
+    server: {
+      fs: {
+        allow: [PACKAGE_ROOT],
+      },
+    },
   })
 
   return server

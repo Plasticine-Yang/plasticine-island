@@ -1,0 +1,17 @@
+{
+  "name": "basic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "plasticine-island dev docs",
+    "build": "plasticine-island build docs",
+    "preview": "plasticine-island preview docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "plasticine-island": "../../.."
+  }
+}

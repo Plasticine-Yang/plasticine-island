@@ -92,7 +92,12 @@ async function createDevServer(root) {
     plugins: [
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       (0, import_plugin_react.default)()
-    ]
+    ],
+    server: {
+      fs: {
+        allow: [PACKAGE_ROOT]
+      }
+    }
   });
   return server;
 }
