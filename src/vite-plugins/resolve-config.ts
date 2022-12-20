@@ -12,7 +12,7 @@ const resolvedSiteDataId = '\0plasticine-island:site-data'
  */
 function viteResolveConfigPlugin(
   config: SiteConfig,
-  onRestart: () => Promise<void>,
+  onHotUpdate?: () => Promise<void>,
 ): Plugin {
   const { root, siteData, sources } = config
 
@@ -39,7 +39,7 @@ function viteResolveConfigPlugin(
         console.log(
           `\n${relative(root, ctx.file)} changed, restarting dev server...\n`,
         )
-        await onRestart()
+        await onHotUpdate()
       }
     },
   }

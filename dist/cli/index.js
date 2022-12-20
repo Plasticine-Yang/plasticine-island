@@ -74,7 +74,7 @@ function viteLoadIndexHtmlPlugin(templatePath) {
 import { relative } from "path";
 var siteDataId = "plasticine-island:site-data";
 var resolvedSiteDataId = "\0plasticine-island:site-data";
-function viteResolveConfigPlugin(config, onRestart) {
+function viteResolveConfigPlugin(config, onHotUpdate) {
   const { root, siteData, sources } = config;
   return {
     name: "plasticine-island:config",
@@ -96,22 +96,22 @@ function viteResolveConfigPlugin(config, onRestart) {
 ${relative(root, ctx.file)} changed, restarting dev server...
 `
         );
-        await onRestart();
+        await onHotUpdate();
       }
     }
   };
 }
 
 // src/node/core/dev.ts
-async function createDevServer(root, onRestart) {
+async function createDevServer(root, onHotUpdate) {
   const config = await resolveConfig(root);
   const server = await createServer({
     configFile: false,
-    root,
+    root: PACKAGE_ROOT,
     plugins: [
       viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
-      viteResolveConfigPlugin(config, onRestart)
+      viteResolveConfigPlugin(config, onHotUpdate)
     ],
     server: {
       fs: {
@@ -140,21 +140,23 @@ function registerDev(cli) {
 
 // src/node/core/build.ts
 import { build as viteBuild } from "vite";
+import viteReactPlugin2 from "@vitejs/plugin-react";
 import { resolve as resolve2 } from "path";
 import { rm, writeFile } from "fs/promises";
-async function build(root) {
-  const [clientBundle] = await bundle(root);
+async function build(root, config) {
+  const [clientBundle] = await bundle(root, config);
   const serverEntryBundlePath = resolve2(root, ".temp", "index.js");
   const serverEntryModule = await import(serverEntryBundlePath);
   const { serverRender } = serverEntryModule;
   await renderPage(root, serverRender, clientBundle);
 }
-async function bundle(root) {
+async function bundle(root, config) {
   const resolveViteConfig = (type) => {
     const isServer = type === "server";
-    const config = {
+    return {
       mode: "production",
       root,
+      plugins: [viteReactPlugin2(), viteResolveConfigPlugin(config)],
       build: {
         ssr: isServer,
         outDir: isServer ? SERVER_ENTRY_BUNDLE_PATH : CLIENT_ENTRY_BUNDLE_PATH,
@@ -166,7 +168,6 @@ async function bundle(root) {
         }
       }
     };
-    return config;
   };
   const buildClientEntry = () => {
     return viteBuild(resolveViteConfig("client"));
@@ -214,7 +215,12 @@ async function renderPage(root, serverRender, clientBundle) {
 // src/node/cli/commands/build.ts
 function registerBuild(cli) {
   const actionCallback = async (root) => {
-    await build(root);
+    try {
+      const config = await resolveConfig(root);
+      await build(root, config);
+    } catch (error) {
+      console.error("build command action error:", error);
+    }
   };
   cli.command("build <root>", "Build for production.").action(actionCallback);
 }

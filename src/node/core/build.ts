@@ -1,4 +1,5 @@
 import { build as viteBuild, InlineConfig } from 'vite'
+import viteReactPlugin from '@vitejs/plugin-react'
 
 import type { RollupOutput } from 'rollup'
 
@@ -13,14 +14,16 @@ import {
 } from '../../constants'
 
 import { serverRender } from '../../runtime/server-entry'
+import { SiteConfig } from 'types'
+import { viteResolveConfigPlugin } from 'vite-plugins'
 
 interface ServerEntryModule {
   serverRender: typeof serverRender
 }
 
-async function build(root: string) {
+async function build(root: string, config: SiteConfig) {
   // 1. 并行构建 client-entry 和 server-entry
-  const [clientBundle] = await bundle(root)
+  const [clientBundle] = await bundle(root, config)
 
   // 2. 引入 server-entry 构建产物
   const serverEntryBundlePath = resolve(root, '.temp', 'index.js')
@@ -39,13 +42,17 @@ async function build(root: string) {
  * @description 构建 client-entry 和 server-entry
  * @returns [clientBundle, serverBundle]
  */
-async function bundle(root: string): Promise<[RollupOutput, RollupOutput]> {
-  const resolveViteConfig = (type: 'client' | 'server') => {
+async function bundle(
+  root: string,
+  config: SiteConfig,
+): Promise<[RollupOutput, RollupOutput]> {
+  const resolveViteConfig = (type: 'client' | 'server'): InlineConfig => {
     const isServer = type === 'server'
 
-    const config: InlineConfig = {
+    return {
       mode: 'production',
       root,
+      plugins: [viteReactPlugin(), viteResolveConfigPlugin(config)],
       build: {
         ssr: isServer,
         outDir: isServer ? SERVER_ENTRY_BUNDLE_PATH : CLIENT_ENTRY_BUNDLE_PATH,
@@ -57,8 +64,6 @@ async function bundle(root: string): Promise<[RollupOutput, RollupOutput]> {
         },
       },
     }
-
-    return config
   }
 
   const buildClientEntry = () => {

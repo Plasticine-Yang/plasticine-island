@@ -1,4 +1,5 @@
 import { CAC } from 'cac'
+import { resolveConfig } from 'node/core/config-resolver'
 
 import { build } from '../../core/build'
 
@@ -8,7 +9,12 @@ function registerBuild(cli: CAC) {
    * @param root vite root -- 项目根目录（index.html 文件所在的位置）。可以是一个绝对路径，或者一个相对于该配置文件本身的相对路径
    */
   const actionCallback = async (root: string) => {
-    await build(root)
+    try {
+      const config = await resolveConfig(root)
+      await build(root, config)
+    } catch (error) {
+      console.error('build command action error:', error)
+    }
   }
 
   cli.command('build <root>', 'Build for production.').action(actionCallback)
