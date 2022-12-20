@@ -1,5 +1,6 @@
 import { CAC } from 'cac'
 import { resolveConfig } from 'node/core/config-resolver'
+import { resolve } from 'path'
 
 import { build } from '../../core/build'
 
@@ -10,7 +11,8 @@ function registerBuild(cli: CAC) {
    */
   const actionCallback = async (root: string) => {
     try {
-      const config = await resolveConfig(root)
+      const resolvedRoot = resolve(root)
+      const config = await resolveConfig(resolvedRoot)
       await build(root, config)
     } catch (error) {
       console.error('build command action error:', error)
