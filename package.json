@@ -36,6 +36,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^3.0.0",
     "cac": "^6.7.14",
+    "fast-glob": "^3.2.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.5.0",
@@ -45,6 +46,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.3.0",
     "@commitlint/config-conventional": "^17.3.0",
+    "@loadable/component": "^5.15.2",
     "@playwright/test": "^1.29.0",
     "@types/node": "^18.11.16",
     "@types/react": "^18.0.26",

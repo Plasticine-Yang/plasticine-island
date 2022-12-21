@@ -15,7 +15,10 @@ import {
 
 import { serverRender } from '../../runtime/server-entry'
 import { SiteConfig } from 'types'
-import { viteResolveConfigPlugin } from 'vite-plugins'
+import {
+  viteConventionalRoutesPlugin,
+  viteResolveConfigPlugin,
+} from 'vite-plugins'
 
 interface ServerEntryModule {
   serverRender: typeof serverRender
@@ -52,7 +55,11 @@ async function bundle(
     return {
       mode: 'production',
       root,
-      plugins: [viteReactPlugin(), viteResolveConfigPlugin(config)],
+      plugins: [
+        viteReactPlugin(),
+        viteResolveConfigPlugin(config),
+        viteConventionalRoutesPlugin({ root }),
+      ],
       build: {
         ssr: isServer,
         outDir: isServer ? SERVER_ENTRY_BUNDLE_PATH : CLIENT_ENTRY_BUNDLE_PATH,

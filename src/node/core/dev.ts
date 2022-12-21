@@ -5,6 +5,7 @@ import viteReactPlugin from '@vitejs/plugin-react'
 import {
   viteLoadIndexHtmlPlugin,
   viteResolveConfigPlugin,
+  viteConventionalRoutesPlugin,
 } from '../../vite-plugins'
 
 import { DEFAULT_TEMPLATE_PATH, PACKAGE_ROOT } from '../../constants'
@@ -17,9 +18,10 @@ async function createDevServer(root: string, onHotUpdate: () => Promise<void>) {
     configFile: false,
     root: PACKAGE_ROOT,
     plugins: [
-      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
+      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteResolveConfigPlugin(config, onHotUpdate),
+      viteConventionalRoutesPlugin({ root }),
     ],
     server: {
       fs: {

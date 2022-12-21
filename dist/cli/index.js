@@ -102,6 +102,87 @@ ${relative(root, ctx.file)} changed, restarting dev server...
   };
 }
 
+// src/vite-plugins/conventional-routes/route-service.ts
+import fg from "fast-glob";
+import { relative as relative2 } from "path";
+import { normalizePath } from "vite";
+var RouteService = class {
+  #scanDir;
+  #routeMeta = [];
+  constructor(scanDir) {
+    this.#scanDir = scanDir;
+  }
+  init() {
+    const files = fg.sync(["**/*.{js,jsx,ts,tsx,md,mdx}"], {
+      cwd: this.#scanDir,
+      absolute: true,
+      ignore: [
+        "**/node_modules/**",
+        "**/dist/**",
+        "plasticine-island.config.ts",
+        "plasticine-island.config.js"
+      ]
+    }).sort();
+    files.forEach((file) => {
+      const fileRelativePath = normalizePath(relative2(this.#scanDir, file));
+      const routePath = this.normalizeRoutePath(fileRelativePath);
+      this.#routeMeta.push({
+        fileAbsPath: file,
+        routePath
+      });
+    });
+  }
+  getRouteMeta() {
+    return this.#routeMeta;
+  }
+  normalizeRoutePath(rawPath) {
+    const routePath = rawPath.replace(/\.(.*)?$/, "").replace(/index$/, "");
+    return routePath.startsWith("/") ? routePath : `/${routePath}`;
+  }
+  generateRoutesCode() {
+    return `
+import React from 'react'   
+import loadable from '@loadable/component'
+
+// \u8DEF\u7531\u7EC4\u4EF6
+${this.#routeMeta.map((route, index) => {
+      return `const Route${index} = loadable(() => import('${route.fileAbsPath}'))`;
+    }).join("\n")}
+
+// routes \u5BF9\u8C61
+export const routes = [
+${this.#routeMeta.map((route, index) => {
+      return `  { path: '${route.routePath}', element: React.createElement(Route${index}) }`;
+    }).join(",\n")}
+]
+`.trim();
+  }
+};
+
+// src/vite-plugins/conventional-routes/index.ts
+var conventionalRoutesId = "plasticine-island:conventional-routes";
+var resolvedConventionalRoutesId = "\0plasticine-island:conventional-routes";
+function viteConventionalRoutesPlugin(config) {
+  const { root } = config;
+  const routeServices = new RouteService(root);
+  return {
+    name: conventionalRoutesId,
+    configResolved() {
+      routeServices.init();
+    },
+    resolveId(source) {
+      if (source === conventionalRoutesId) {
+        return resolvedConventionalRoutesId;
+      }
+    },
+    load(id) {
+      if (id === resolvedConventionalRoutesId) {
+        return routeServices.generateRoutesCode();
+      }
+    }
+  };
+}
+
 // src/node/core/dev.ts
 async function createDevServer(root, onHotUpdate) {
   const config = await resolveConfig(root);
@@ -109,9 +190,10 @@ async function createDevServer(root, onHotUpdate) {
     configFile: false,
     root: PACKAGE_ROOT,
     plugins: [
-      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       viteReactPlugin(),
-      viteResolveConfigPlugin(config, onHotUpdate)
+      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
+      viteResolveConfigPlugin(config, onHotUpdate),
+      viteConventionalRoutesPlugin({ root })
     ],
     server: {
       fs: {
@@ -138,6 +220,9 @@ function registerDev(cli) {
   cli.command("dev <root>", "Start a dev server.").action(actionCallback);
 }
 
+// src/node/cli/commands/build.ts
+import { resolve as resolve3 } from "path";
+
 // src/node/core/build.ts
 import { build as viteBuild } from "vite";
 import viteReactPlugin2 from "@vitejs/plugin-react";
@@ -156,7 +241,11 @@ async function bundle(root, config) {
     return {
       mode: "production",
       root,
-      plugins: [viteReactPlugin2(), viteResolveConfigPlugin(config)],
+      plugins: [
+        viteReactPlugin2(),
+        viteResolveConfigPlugin(config),
+        viteConventionalRoutesPlugin({ root })
+      ],
       build: {
         ssr: isServer,
         outDir: isServer ? SERVER_ENTRY_BUNDLE_PATH : CLIENT_ENTRY_BUNDLE_PATH,
@@ -216,7 +305,8 @@ async function renderPage(root, serverRender, clientBundle) {
 function registerBuild(cli) {
   const actionCallback = async (root) => {
     try {
-      const config = await resolveConfig(root);
+      const resolvedRoot = resolve3(root);
+      const config = await resolveConfig(resolvedRoot);
       await build(root, config);
     } catch (error) {
       console.error("build command action error:", error);

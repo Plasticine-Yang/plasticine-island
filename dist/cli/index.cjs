@@ -21,7 +21,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var import_cac = __toESM(require("cac"), 1);
 
 // src/node/core/dev.ts
-var import_vite = require("vite");
+var import_vite2 = require("vite");
 var import_plugin_react = __toESM(require("@vitejs/plugin-react"), 1);
 
 // src/vite-plugins/load-index-html.ts
@@ -116,6 +116,87 @@ ${(0, import_path2.relative)(root, ctx.file)} changed, restarting dev server...
   };
 }
 
+// src/vite-plugins/conventional-routes/route-service.ts
+var import_fast_glob = __toESM(require("fast-glob"), 1);
+var import_path3 = require("path");
+var import_vite = require("vite");
+var RouteService = class {
+  #scanDir;
+  #routeMeta = [];
+  constructor(scanDir) {
+    this.#scanDir = scanDir;
+  }
+  init() {
+    const files = import_fast_glob.default.sync(["**/*.{js,jsx,ts,tsx,md,mdx}"], {
+      cwd: this.#scanDir,
+      absolute: true,
+      ignore: [
+        "**/node_modules/**",
+        "**/dist/**",
+        "plasticine-island.config.ts",
+        "plasticine-island.config.js"
+      ]
+    }).sort();
+    files.forEach((file) => {
+      const fileRelativePath = (0, import_vite.normalizePath)((0, import_path3.relative)(this.#scanDir, file));
+      const routePath = this.normalizeRoutePath(fileRelativePath);
+      this.#routeMeta.push({
+        fileAbsPath: file,
+        routePath
+      });
+    });
+  }
+  getRouteMeta() {
+    return this.#routeMeta;
+  }
+  normalizeRoutePath(rawPath) {
+    const routePath = rawPath.replace(/\.(.*)?$/, "").replace(/index$/, "");
+    return routePath.startsWith("/") ? routePath : `/${routePath}`;
+  }
+  generateRoutesCode() {
+    return `
+import React from 'react'   
+import loadable from '@loadable/component'
+
+// \u8DEF\u7531\u7EC4\u4EF6
+${this.#routeMeta.map((route, index) => {
+      return `const Route${index} = loadable(() => import('${route.fileAbsPath}'))`;
+    }).join("\n")}
+
+// routes \u5BF9\u8C61
+export const routes = [
+${this.#routeMeta.map((route, index) => {
+      return `  { path: '${route.routePath}', element: React.createElement(Route${index}) }`;
+    }).join(",\n")}
+]
+`.trim();
+  }
+};
+
+// src/vite-plugins/conventional-routes/index.ts
+var conventionalRoutesId = "plasticine-island:conventional-routes";
+var resolvedConventionalRoutesId = "\0plasticine-island:conventional-routes";
+function viteConventionalRoutesPlugin(config) {
+  const { root } = config;
+  const routeServices = new RouteService(root);
+  return {
+    name: conventionalRoutesId,
+    configResolved() {
+      routeServices.init();
+    },
+    resolveId(source) {
+      if (source === conventionalRoutesId) {
+        return resolvedConventionalRoutesId;
+      }
+    },
+    load(id) {
+      if (id === resolvedConventionalRoutesId) {
+        return routeServices.generateRoutesCode();
+      }
+    }
+  };
+}
+
 // src/node/core/config-resolver.ts
 var import_unconfig = require("unconfig");
 async function resolveConfig(root) {
@@ -149,13 +230,14 @@ function resolveSiteData(userConfig) {
 // src/node/core/dev.ts
 async function createDevServer(root, onHotUpdate) {
   const config = await resolveConfig(root);
-  const server = await (0, import_vite.createServer)({
+  const server = await (0, import_vite2.createServer)({
     configFile: false,
     root: PACKAGE_ROOT,
     plugins: [
-      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
       (0, import_plugin_react.default)(),
-      viteResolveConfigPlugin(config, onHotUpdate)
+      viteLoadIndexHtmlPlugin(DEFAULT_TEMPLATE_PATH),
+      viteResolveConfigPlugin(config, onHotUpdate),
+      viteConventionalRoutesPlugin({ root })
     ],
     server: {
       fs: {
@@ -182,14 +264,17 @@ function registerDev(cli) {
   cli.command("dev <root>", "Start a dev server.").action(actionCallback);
 }
 
+// src/node/cli/commands/build.ts
+var import_path5 = require("path");
+
 // src/node/core/build.ts
-var import_vite2 = require("vite");
+var import_vite3 = require("vite");
 var import_plugin_react2 = __toESM(require("@vitejs/plugin-react"), 1);
-var import_path3 = require("path");
+var import_path4 = require("path");
 var import_promises2 = require("fs/promises");
 async function build(root, config) {
   const [clientBundle] = await bundle(root, config);
-  const serverEntryBundlePath = (0, import_path3.resolve)(root, ".temp", "index.js");
+  const serverEntryBundlePath = (0, import_path4.resolve)(root, ".temp", "index.js");
   const serverEntryModule = await import(serverEntryBundlePath);
   const { serverRender } = serverEntryModule;
   await renderPage(root, serverRender, clientBundle);
@@ -200,7 +285,11 @@ async function bundle(root, config) {
     return {
       mode: "production",
       root,
-      plugins: [(0, import_plugin_react2.default)(), viteResolveConfigPlugin(config)],
+      plugins: [
+        (0, import_plugin_react2.default)(),
+        viteResolveConfigPlugin(config),
+        viteConventionalRoutesPlugin({ root })
+      ],
       build: {
         ssr: isServer,
         outDir: isServer ? SERVER_ENTRY_BUNDLE_PATH : CLIENT_ENTRY_BUNDLE_PATH,
@@ -214,10 +303,10 @@ async function bundle(root, config) {
     };
   };
   const buildClientEntry = () => {
-    return (0, import_vite2.build)(resolveViteConfig("client"));
+    return (0, import_vite3.build)(resolveViteConfig("client"));
   };
   const buildServerEntry = () => {
-    return (0, import_vite2.build)(resolveViteConfig("server"));
+    return (0, import_vite3.build)(resolveViteConfig("server"));
   };
   try {
     const [clientEntryBundle, serverEntryBundle] = await Promise.all([
@@ -249,8 +338,8 @@ async function renderPage(root, serverRender, clientBundle) {
   </body>
 </html> 
 `.trim();
-  await (0, import_promises2.writeFile)((0, import_path3.resolve)(root, CLIENT_ENTRY_BUNDLE_PATH, "index.html"), html);
-  await (0, import_promises2.rm)((0, import_path3.resolve)(root, SERVER_ENTRY_BUNDLE_PATH), {
+  await (0, import_promises2.writeFile)((0, import_path4.resolve)(root, CLIENT_ENTRY_BUNDLE_PATH, "index.html"), html);
+  await (0, import_promises2.rm)((0, import_path4.resolve)(root, SERVER_ENTRY_BUNDLE_PATH), {
     recursive: true,
     force: true
   });
@@ -260,7 +349,8 @@ async function renderPage(root, serverRender, clientBundle) {
 function registerBuild(cli) {
   const actionCallback = async (root) => {
     try {
-      const config = await resolveConfig(root);
+      const resolvedRoot = (0, import_path5.resolve)(root);
+      const config = await resolveConfig(resolvedRoot);
       await build(root, config);
     } catch (error) {
       console.error("build command action error:", error);
