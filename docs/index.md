@@ -27,3 +27,9 @@ A note[^1]
 
 - [ ] to do
 - [x] done
+
+## Code Block
+
+```ts
+console.log(666)
+```
