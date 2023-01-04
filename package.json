@@ -13,7 +13,7 @@
     "dev": "tsup --watch",
     "build": "tsup",
     "preview": "serve docs/dist",
-    "test:unit": "vitest --ui",
+    "test:unit": "vitest",
     "test:e2e": "playwright test",
     "lint": "eslint --fix --ext .ts,.tsx,.js,.jsx ./",
     "commit": "cz",
@@ -34,13 +34,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mdx-js/rollup": "^2.2.1",
     "@vitejs/plugin-react": "^3.0.0",
     "cac": "^6.7.14",
     "fast-glob": "^3.2.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.5.0",
+    "rehype-stringify": "^9.0.3",
+    "remark-parse": "^10.0.1",
+    "remark-rehype": "^10.1.0",
     "unconfig": "^0.3.7",
+    "unified": "^10.1.2",
     "vite": "^4.0.1"
   },
   "devDependencies": {
