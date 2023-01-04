@@ -274,7 +274,11 @@ var import_path4 = require("path");
 var import_promises2 = require("fs/promises");
 async function build(root, config) {
   const [clientBundle] = await bundle(root, config);
-  const serverEntryBundlePath = (0, import_path4.resolve)(root, ".temp", "index.js");
+  const serverEntryBundlePath = (0, import_path4.resolve)(
+    root,
+    SERVER_ENTRY_BUNDLE_PATH,
+    "index.js"
+  );
   const serverEntryModule = await import(serverEntryBundlePath);
   const { serverRender } = serverEntryModule;
   await renderPage(root, serverRender, clientBundle);

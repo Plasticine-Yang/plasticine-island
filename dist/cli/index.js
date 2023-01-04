@@ -230,7 +230,11 @@ import { resolve as resolve2 } from "path";
 import { rm, writeFile } from "fs/promises";
 async function build(root, config) {
   const [clientBundle] = await bundle(root, config);
-  const serverEntryBundlePath = resolve2(root, ".temp", "index.js");
+  const serverEntryBundlePath = resolve2(
+    root,
+    SERVER_ENTRY_BUNDLE_PATH,
+    "index.js"
+  );
   const serverEntryModule = await import(serverEntryBundlePath);
   const { serverRender } = serverEntryModule;
   await renderPage(root, serverRender, clientBundle);

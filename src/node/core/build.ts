@@ -29,7 +29,11 @@ async function build(root: string, config: SiteConfig) {
   const [clientBundle] = await bundle(root, config)
 
   // 2. 引入 server-entry 构建产物
-  const serverEntryBundlePath = resolve(root, '.temp', 'index.js')
+  const serverEntryBundlePath = resolve(
+    root,
+    SERVER_ENTRY_BUNDLE_PATH,
+    'index.js',
+  )
   const serverEntryModule: ServerEntryModule = await import(
     serverEntryBundlePath
   )
