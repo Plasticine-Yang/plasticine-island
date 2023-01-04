@@ -1,4 +1,5 @@
 import viteReactPlugin from '@vitejs/plugin-react'
+import type { PluginOption } from 'vite'
 
 import {
   viteConventionalRoutesPlugin,
@@ -17,7 +18,9 @@ interface ResolveVitePluginsOptions {
   onResolveConfigPluginHotUpdate?: () => Promise<void>
 }
 
-function resolveVitePlugins(options: ResolveVitePluginsOptions) {
+function resolveVitePlugins(
+  options: ResolveVitePluginsOptions,
+): PluginOption[] {
   const { root, resolvedSiteConfig, onResolveConfigPluginHotUpdate } = options
 
   return [
