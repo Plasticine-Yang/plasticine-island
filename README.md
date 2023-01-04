@@ -1,6 +1,6 @@
 # plasticine-island
 
-A SSG framework powered by island.
+🏝️🏝️🏝️ A SSG framework powered by islands idea.
 
 ## Features
 
