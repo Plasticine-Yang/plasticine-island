@@ -8,6 +8,7 @@ import remarkMDXFrontmatterPlugin from 'remark-mdx-frontmatter'
 
 import rehypeAutolinkHeadingPlugin from 'rehype-autolink-headings'
 import rehypeSlugPlugin from 'rehype-slug'
+import { rehypeCodeBlockPlugin } from 'unified-plugins/index'
 
 function viteMDXPlugin(): Plugin {
   return rollupMDXPlugin({
@@ -43,6 +44,8 @@ function viteMDXPlugin(): Plugin {
           },
         } as Parameters<typeof rehypeAutolinkHeadingPlugin>['0'],
       ],
+      // 定制代码块的 html 结构
+      rehypeCodeBlockPlugin,
     ],
   })
 }
