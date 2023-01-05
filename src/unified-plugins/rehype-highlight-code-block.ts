@@ -10,6 +10,10 @@ import { ensureElementIsCodeBlock, extractCodeBlockLang } from './utils'
 interface RehypeHighlightCodeBlockPluginOptions {
   highlighter: Highlighter
 }
+
+/**
+ * @description 代码块高亮
+ */
 const rehypeHighlightCodeBlockPlugin: Plugin<
   [RehypeHighlightCodeBlockPluginOptions],
   Root,
