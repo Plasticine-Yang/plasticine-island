@@ -11,6 +11,7 @@ import rehypeSlugPlugin from 'rehype-slug'
 import {
   rehypeCustomCodeBlockStructPlugin,
   rehypeHighlightCodeBlockPlugin,
+  remarkTOCPlugin,
 } from 'unified-plugins/index'
 
 import shiki from 'shiki'
@@ -39,6 +40,8 @@ async function viteMDXPlugin(options: MDXPluginOptions = {}): Promise<Plugin> {
           name: 'frontmatter',
         } as Parameters<typeof remarkMDXFrontmatterPlugin>['0'],
       ],
+      // TOC
+      remarkTOCPlugin,
     ],
     rehypePlugins: [
       // 为 `<h1> ~ <h6>` 标签添加 id 属性
