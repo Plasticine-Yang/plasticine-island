@@ -31,5 +31,8 @@ A note[^1]
 ## Code Block
 
 ```ts
-console.log(666)
+const foo = 'foo'
+const bar = 'bar'
+console.log(foo)
+console.log(bar)
 ```

@@ -8,9 +8,23 @@ import remarkMDXFrontmatterPlugin from 'remark-mdx-frontmatter'
 
 import rehypeAutolinkHeadingPlugin from 'rehype-autolink-headings'
 import rehypeSlugPlugin from 'rehype-slug'
-import { rehypeCodeBlockPlugin } from 'unified-plugins/index'
+import {
+  rehypeCodeBlockPlugin,
+  rehypeHighlightCodeBlockPlugin,
+} from 'unified-plugins/index'
 
-function viteMDXPlugin(): Plugin {
+import shiki from 'shiki'
+
+interface MDXPluginOptions {
+  /** @description shiki highlighter -- 优先级更高 传入 highlighter 时会使用传入的 highlighter，忽略其他配置项 */
+  highlighter?: shiki.Highlighter
+
+  /** @description shiki theme */
+  highlightTheme?: string
+}
+async function viteMDXPlugin(options: MDXPluginOptions = {}): Promise<Plugin> {
+  const { highlighter } = await resolveDefaultOptions(options)
+
   return rollupMDXPlugin({
     remarkPlugins: [
       // 支持 Github Flavoured Markdown 规范
@@ -46,8 +60,28 @@ function viteMDXPlugin(): Plugin {
       ],
       // 定制代码块的 html 结构
       rehypeCodeBlockPlugin,
+      // 代码高亮
+      [
+        rehypeHighlightCodeBlockPlugin,
+        { highlighter } as Parameters<
+          typeof rehypeHighlightCodeBlockPlugin
+        >['0'],
+      ],
     ],
   })
+}
+
+async function resolveDefaultOptions(
+  options: MDXPluginOptions,
+): Promise<Required<MDXPluginOptions>> {
+  const highlightTheme = options.highlightTheme ?? 'nord'
+
+  return {
+    highlightTheme,
+    highlighter:
+      options.highlighter ??
+      (await shiki.getHighlighter({ theme: highlightTheme })),
+  }
 }
 
 export { viteMDXPlugin }

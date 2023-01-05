@@ -9,7 +9,6 @@ import { ensureElementIsCodeBlock, extractCodeBlockLang } from './utils'
 
 interface RehypeHighlightCodeBlockPluginOptions {
   highlighter: Highlighter
-  theme?: string
 }
 const rehypeHighlightCodeBlockPlugin: Plugin<
   [RehypeHighlightCodeBlockPluginOptions],
