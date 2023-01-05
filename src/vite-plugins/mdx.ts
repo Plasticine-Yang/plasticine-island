@@ -9,7 +9,7 @@ import remarkMDXFrontmatterPlugin from 'remark-mdx-frontmatter'
 import rehypeAutolinkHeadingPlugin from 'rehype-autolink-headings'
 import rehypeSlugPlugin from 'rehype-slug'
 import {
-  rehypeCodeBlockPlugin,
+  rehypeCustomCodeBlockStructPlugin,
   rehypeHighlightCodeBlockPlugin,
 } from 'unified-plugins/index'
 
@@ -59,7 +59,7 @@ async function viteMDXPlugin(options: MDXPluginOptions = {}): Promise<Plugin> {
         } as Parameters<typeof rehypeAutolinkHeadingPlugin>['0'],
       ],
       // 定制代码块的 html 结构
-      rehypeCodeBlockPlugin,
+      rehypeCustomCodeBlockStructPlugin,
       // 代码高亮
       [
         rehypeHighlightCodeBlockPlugin,

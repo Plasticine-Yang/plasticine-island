@@ -5,7 +5,7 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import {
-  rehypeCodeBlockPlugin,
+  rehypeCustomCodeBlockStructPlugin,
   rehypeHighlightCodeBlockPlugin,
 } from '../../unified-plugins'
 
@@ -17,7 +17,7 @@ describe('Markdown compile cases', async () => {
     .use(remarkParse)
     .use(remarkRehype)
     .use(rehypeStringify)
-    .use(rehypeCodeBlockPlugin)
+    .use(rehypeCustomCodeBlockStructPlugin)
     .use(rehypeHighlightCodeBlockPlugin, {
       highlighter: await shiki.getHighlighter({ theme: 'nord' }),
     })

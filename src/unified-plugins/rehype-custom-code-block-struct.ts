@@ -7,9 +7,9 @@ import { ensureElementIsCodeBlock } from './utils'
 /**
  * @description 定制代码块的 html 结构
  */
-const rehypeCodeBlockPlugin: Plugin<[], Root, Root> = () => {
+const rehypeCustomCodeBlockStructPlugin: Plugin<[], Root, Root> = () => {
   return (tree) => {
-    visit(tree, 'element', (el) => {
+    visit(tree, 'element', (el, index, parent) => {
       // 需要保证处理的元素是代码块对应的 hast 节点
       if (ensureElementIsCodeBlock(el, true)) {
         // 提取位于 code 标签中的 className -- 如 `language-ts`
@@ -32,25 +32,26 @@ const rehypeCodeBlockPlugin: Plugin<[], Root, Root> = () => {
           ],
         } as Element
 
-        // 克隆 pre 标签元素 -- 并将代码块元素标记为已处理过 避免后续再次遍历到时重复处理
-        const clonedCodeBlockEl: Element = {
+        // 创建 div 容器元素
+        const divEl = {
           type: 'element',
-          tagName: 'pre',
-          children: el.children,
-          data: {
-            isVisited: true,
+          tagName: 'div',
+          properties: {
+            className: className,
           },
+          children: [spanEl, el],
+        } as Element
+
+        // 将代码块元素标记为已处理过 避免后续再次遍历到时重复处理
+        el.data = {
+          isVisited: true,
         }
 
-        // 将代码块元素 pre 标签变为 div
-        el.tagName = 'div'
-        el.properties = el.properties ?? {}
-        el.properties.className = className
-
-        el.children = [spanEl, clonedCodeBlockEl]
+        // 用 div hast 替换 el hast
+        parent.children.splice(index, 1, divEl)
       }
     })
   }
 }
 
-export { rehypeCodeBlockPlugin }
+export { rehypeCustomCodeBlockStructPlugin }

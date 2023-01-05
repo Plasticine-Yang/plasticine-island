@@ -1,2 +1,2 @@
-export { rehypeCodeBlockPlugin } from './rehype-code-block'
+export { rehypeCustomCodeBlockStructPlugin } from './rehype-custom-code-block-struct'
 export { rehypeHighlightCodeBlockPlugin } from './rehype-highlight-code-block'
