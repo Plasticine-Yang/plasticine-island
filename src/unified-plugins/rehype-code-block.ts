@@ -2,6 +2,7 @@ import type { Root, Element } from 'hast'
 import type { Plugin } from 'unified'
 
 import { visit } from 'unist-util-visit'
+import { ensureElementIsCodeBlock } from './utils'
 
 /**
  * @description 定制代码块的 html 结构
@@ -10,7 +11,7 @@ const rehypeCodeBlockPlugin: Plugin<[], Root, Root> = () => {
   return (tree) => {
     visit(tree, 'element', (el) => {
       // 需要保证处理的元素是代码块对应的 hast 节点
-      if (ensureElementIsCodeBlock(el)) {
+      if (ensureElementIsCodeBlock(el, true)) {
         // 提取位于 code 标签中的 className -- 如 `language-ts`
         const className =
           (el.children.at(0) as Element).properties.className.toString() || ''
@@ -50,20 +51,6 @@ const rehypeCodeBlockPlugin: Plugin<[], Root, Root> = () => {
       }
     })
   }
-}
-
-/**
- * @description 确保 el 是经 markdown 代码块转换而来的 hast Element，并且需要是未被遍历过的
- * @param el hast Element
- */
-function ensureElementIsCodeBlock(el: Element) {
-  const firstChild = el.children.at(0)
-  return (
-    el.tagName === 'pre' &&
-    firstChild?.type === 'element' &&
-    firstChild.tagName === 'code' &&
-    !el.data?.isVisited
-  )
 }
 
 export { rehypeCodeBlockPlugin }
