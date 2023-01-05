@@ -18,6 +18,7 @@
 - [x] vite 插件 -- 支持配置文件 `plasticine-island.config.ts` 热更新
 - [x] vite 插件 -- 约定式路由
 - [x] rehype 插件 -- 转换 markdown 的代码块为特定 html 结构
+- [x] rehype 插件 -- 支持代码块高亮
 
 ## Usage
 
