@@ -38,7 +38,7 @@ describe('Markdown compile cases', async () => {
     )
   })
 
-  test.only('Compile code block', () => {
+  test('Compile code block', () => {
     const mdContent = '```ts\nconsole.log(666)\n```'
     const result = processor.processSync(mdContent)
 
